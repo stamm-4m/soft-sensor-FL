@@ -1,0 +1,31 @@
+# Environments
+venv/
+env/
+.venv/
+
+# Build artifacts and package info
+build/
+dist/
+*.egg-info/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Type checking and testing caches
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+
+# Package managers (if building a PyPI library)
+uv.lock
+poetry.lock
+
+# IDEs
+.vscode/
+.idea/
