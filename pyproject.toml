@@ -1,6 +1,6 @@
 [project]
 name = "stamm-sdk"
-version = "0.1.3"
+version = "0.2.7"
 description = "Python client SDK for Stamm federated learning registry"
 readme = "README.md"
 authors = [
@@ -10,6 +10,39 @@ requires-python = ">=3.12.0"
 dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.11.5",
+    "pandas>=2.2.0",
+]
+
+[project.optional-dependencies]
+# FederatedClient.load_model()/train() import these lazily -- only needed
+# if you actually train through the SDK (Mode A/B), not for read-only
+# registry discovery or auth.
+#
+# scikit-learn is pinned EXACTLY, not a floor (>=) -- every sklearn
+# artifact in the live registry's catalog (RF, CART, SVM, GBM, HGB, ...)
+# was saved with 1.5.2. GBM/HGB confirmed to hard-fail
+# (ModuleNotFoundError: _loss) on 1.9.1; sklearn's own docs say
+# persistence across versions isn't guaranteed for ANY estimator, so the
+# others "working" on a newer version is luck, not a guarantee. Pin here
+# rather than just document it, so a plain `pip install stamm-sdk[learning]`
+# can't silently land on an incompatible version.
+learning = [
+    "torch>=2.2",
+    "scikit-learn==1.5.2",
+    "joblib>=1.3",
+    # tensorflow>=2.16 for Keras 3 / the native ".keras" save format --
+    # the real LSTM artifact in this registry was saved with TF 2.18.0.
+    "tensorflow>=2.16",
+]
+
+# Building the HTML docs (sphinx-build -b html docs docs/_build/html) --
+# not needed to install/use the SDK itself.
+docs = [
+    "sphinx>=7.2",
+    "myst-parser>=3.0",       # lets conf.py/toctree pull in our existing .md files as-is
+    "furo>=2024.8.6",         # theme
+    "sphinx-autodoc-typehints>=2.2",
+    "sphinx-design>=0.6",     # {tab-set}/{tab-item} -- Manual/Automatic tabs in TRAINING_EXAMPLES.md
 ]
 
 [project.scripts]

@@ -61,9 +61,12 @@ class Session:
         if not self.tokens:
             raise RuntimeError("Not authenticated. Call login first.")
 
+        # FIX: the registry expects refresh_token in the JSON body, not as
+        # a query param -- the query-param form 422s ("Field required" on
+        # body), confirmed against the live registry.
         response = self._client.post(
             "/auth/refresh",
-            params={"refresh_token": self.tokens.refresh_token},
+            json={"refresh_token": self.tokens.refresh_token},
         )
         response.raise_for_status()
         data = response.json()
@@ -87,9 +90,10 @@ class Session:
         if not self.tokens:
             return {"detail": "No active session"}
 
+        # FIX: same query-param-vs-body issue as refresh() above.
         response = self._client.post(
             "/auth/logout",
-            params={"refresh_token": self.tokens.refresh_token},
+            json={"refresh_token": self.tokens.refresh_token},
             headers=self._auth_headers(),
         )
         response.raise_for_status()
@@ -119,3 +123,21 @@ class Session:
         if response.content:
             return response.json()
         return {}
+
+    def request_raw(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+    ) -> bytes:
+        """Like request(), but returns the raw response body instead of
+        decoding it as JSON -- for binary downloads (model artifacts)."""
+        response = self._client.request(
+            method,
+            path,
+            params=params,
+            headers=self._auth_headers(),
+        )
+        response.raise_for_status()
+        return response.content
